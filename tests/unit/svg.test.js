@@ -28,8 +28,12 @@ test("buildSvg path covers exactly the dark modules", () => {
 });
 
 test("buildSvg escapes user-controlled values", () => {
-  const svg = core.buildSvg(qr, { color: "#000000", title: `</title><script>alert(1)</script>` });
-  assert.doesNotMatch(svg, /<script>/);
+  const svg = core.buildSvg(qr, { color: "#000000", title: `</title><SCRIPT >alert(1)</script ><svg onload=x>` });
+  // No raw "<" from user input may survive: only our own tags may start with "<".
+  assert.doesNotMatch(svg, /<\/?script\b/i);
+  assert.doesNotMatch(svg, /<svg onload/i);
+  assert.match(svg, /<title>&lt;\/title&gt;&lt;SCRIPT &gt;alert\(1\)&lt;\/script &gt;&lt;svg onload=x&gt;<\/title>/);
+  assert.equal((svg.match(/<title>/g) || []).length, 1);
 });
 
 test("buildSvg rejects non-hex colours (attribute injection)", () => {
