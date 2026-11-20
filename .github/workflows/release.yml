@@ -27,7 +27,7 @@ jobs:
       - name: Tag must match package.json version
         run: test "v$(node -p 'require("./package.json").version')" = "${GITHUB_REF_NAME}"
       - run: npm run build
-      - uses: actions/attest-build-provenance@v2
+      - uses: actions/attest-build-provenance@v4
         with:
           subject-path: dist/unibo-qr.html
       - name: Publish release
