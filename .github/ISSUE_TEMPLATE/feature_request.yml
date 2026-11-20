@@ -1,0 +1,11 @@
+name: "Feature request / Nuova funzionalità"
+description: "Suggest an improvement / Proponi un miglioramento"
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: "Need / Esigenza"
+      description: "What problem would this solve?"
+    validations:
+      required: true

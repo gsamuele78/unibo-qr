@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="@CSP@">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Generatore di QR code offline e bilingue / Offline bilingual QR code generator">
+<meta name="generator" content="unibo-qr @VERSION@">
+<title>UniBo QR</title>
+<style>/*@CSS@*/</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap masthead-row">
+    <div>
+      <p class="institution" data-i18n="institution">Università di Bologna</p>
+      <h1 data-i18n="appTitle">Generatore di QR code</h1>
+      <p class="subtitle" data-i18n="appSubtitle"></p>
+    </div>
+    <div class="lang" role="group" aria-labelledby="lang-label">
+      <span id="lang-label" class="visually-hidden" data-i18n="langLabel">Lingua</span>
+      <button type="button" id="lang-it" lang="it" data-lang="it" aria-pressed="true">IT</button>
+      <button type="button" id="lang-en" lang="en" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap grid">
+  <form id="form" class="panel" novalidate>
+    <div class="field">
+      <label for="content" data-i18n="contentLabel"></label>
+      <textarea id="content" rows="3" spellcheck="false" autocomplete="url" aria-describedby="content-hint messages">https://www.unibo.it</textarea>
+      <p id="content-hint" class="hint" data-i18n="contentHint"></p>
+    </div>
+
+    <div id="messages" class="messages" role="status" aria-live="polite"></div>
+
+    <fieldset>
+      <legend data-i18n="styleLegend"></legend>
+      <div class="field" role="radiogroup" aria-labelledby="colour-label">
+        <span id="colour-label" class="label" data-i18n="colourLabel"></span>
+        <div class="swatches">
+          <label class="swatch"><input type="radio" name="colour" id="colour-black" value="#000000" checked><span class="chip chip-black"></span><span data-i18n="colourBlack"></span></label>
+          <label class="swatch"><input type="radio" name="colour" id="colour-unibo" value="#bb2e29"><span class="chip chip-unibo"></span><span data-i18n="colourUnibo"></span></label>
+          <label class="swatch"><input type="radio" name="colour" id="colour-custom" value="custom"><input type="color" id="colour-picker" value="#1f3a5f" data-i18n-attr="aria-label:colourCustom"><span data-i18n="colourCustom"></span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="ecc" data-i18n="eccLabel"></label>
+        <select id="ecc" aria-describedby="ecc-note">
+          <option value="L" data-i18n="eccL"></option>
+          <option value="M" data-i18n="eccM" selected></option>
+          <option value="Q" data-i18n="eccQ"></option>
+          <option value="H" data-i18n="eccH"></option>
+        </select>
+        <p id="ecc-note" class="hint" data-i18n="eccForcedByLogo" hidden></p>
+      </div>
+      <div class="field">
+        <label for="logo" data-i18n="logoLabel"></label>
+        <input type="file" id="logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" aria-describedby="logo-hint">
+        <p id="logo-hint" class="hint" data-i18n="logoHint"></p>
+        <button type="button" id="logo-remove" class="secondary" data-i18n="logoRemove" hidden></button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend data-i18n="exportLegend"></legend>
+      <div class="row">
+        <div class="field">
+          <label for="raster-size" data-i18n="rasterSizeLabel"></label>
+          <select id="raster-size">
+            <option value="256" data-i18n="sizePx" data-n="256"></option>
+            <option value="512" data-i18n="sizePx" data-n="512"></option>
+            <option value="1024" data-i18n="sizePx" data-n="1024" selected></option>
+            <option value="2048" data-i18n="sizePx" data-n="2048"></option>
+            <option value="4096" data-i18n="sizePx" data-n="4096"></option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pdf-size" data-i18n="pdfSizeLabel"></label>
+          <select id="pdf-size">
+            <option value="20" data-i18n="sizeMm" data-n="20"></option>
+            <option value="30" data-i18n="sizeMm" data-n="30"></option>
+            <option value="50" data-i18n="sizeMm" data-n="50" selected></option>
+            <option value="100" data-i18n="sizeMm" data-n="100"></option>
+            <option value="200" data-i18n="sizeMm" data-n="200"></option>
+          </select>
+        </div>
+      </div>
+      <div class="buttons">
+        <button type="button" id="dl-png" data-i18n="downloadPng"></button>
+        <button type="button" id="dl-jpeg" data-i18n="downloadJpeg"></button>
+        <button type="button" id="dl-webp" data-i18n="downloadWebp"></button>
+        <button type="button" id="dl-svg" data-i18n="downloadSvg"></button>
+        <button type="button" id="dl-pdf" data-i18n="downloadPdf"></button>
+        <button type="button" id="copy-png" class="secondary" data-i18n="copyPng"></button>
+      </div>
+    </fieldset>
+  </form>
+
+  <section class="panel preview-panel" aria-labelledby="preview-heading">
+    <h2 id="preview-heading" data-i18n="previewLabel"></h2>
+    <div class="preview-frame">
+      <canvas id="preview" width="600" height="600" role="img" aria-label=""></canvas>
+    </div>
+    <p id="info" class="hint"></p>
+    <p class="advice" data-i18n="scanAdvice"></p>
+  </section>
+</main>
+
+<footer class="wrap footer">
+  <p data-i18n="footerOffline"></p>
+  <p><span data-i18n="footerLicense"></span> · v@VERSION@</p>
+</footer>
+<script>/*@JS@*/</script>
+</body>
+</html>
