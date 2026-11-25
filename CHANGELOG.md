@@ -21,6 +21,8 @@ and [Semantic Versioning](https://semver.org/).
 
 ### Changed
 - GitHub Pages deployment is now manual only; nothing is published on push.
+- Releases are cut automatically when a new version lands on `main`; no tag
+  has to be pushed by hand.
 - Dependabot no longer proposes TypeScript major upgrades (TypeScript 7 drops
   the compiler API used by `npm run vendor`).
 

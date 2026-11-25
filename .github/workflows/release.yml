@@ -1,22 +1,65 @@
+# Cut a release automatically (ADR 0009).
+#
+# When main receives a CHANGELOG.md / package.json whose newest version has no
+# GitHub Release yet, this workflow tests the commit, builds the single HTML
+# file, attests it, creates the tag vX.Y.Z and publishes the release with that
+# CHANGELOG section as notes. The tag is created here, with this run's own
+# GITHUB_TOKEN: no long-lived secret, nobody has to push a tag by hand.
+# A tag pushed by hand still works. A pull request that changes this pipeline
+# rehearses it (plan + build) and publishes nothing.
 name: Release
 
 on:
   push:
+    branches: [main]
+    paths: ["CHANGELOG.md", "package.json"]
     tags: ["v*.*.*"]
+  pull_request:
+    paths: [".github/workflows/release.yml", "scripts/release-plan.mjs", "scripts/build.mjs"]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('release-{0}', github.ref) || 'release' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  decide:
+    name: What to release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      release: ${{ steps.plan.outputs.release }}
+      tag: ${{ steps.plan.outputs.tag }}
+      create_tag: ${{ steps.plan.outputs.create_tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc }
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release-plan.mjs
+
   test:
+    needs: decide
+    if: needs.decide.outputs.release == 'true'
     uses: ./.github/workflows/ci.yml
 
   release:
-    needs: test
+    name: ${{ needs.decide.outputs.release == 'true' && 'Publish' || 'Rehearse' }} ${{ needs.decide.outputs.tag }}
+    needs: [decide, test]
+    # Publish only after the tests passed; rehearse (no tests, no publish) on pull requests.
+    if: >-
+      always() && needs.decide.result == 'success' &&
+      (needs.test.result == 'success' ||
+       (github.event_name == 'pull_request' && needs.test.result == 'skipped'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write        # create the GitHub Release
+      contents: write        # create the tag and the GitHub Release
       id-token: write        # sign the provenance attestation
       attestations: write
     steps:
@@ -24,16 +67,23 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version-file: .nvmrc, cache: npm }
       - run: npm ci
-      - name: Tag must match package.json version
-        run: test "v$(node -p 'require("./package.json").version')" = "${GITHUB_REF_NAME}"
       - run: npm run build
-      - uses: actions/attest-build-provenance@v2
-        with:
-          subject-path: dist/unibo-qr.html
-      - name: Publish release
+      - name: Release notes from CHANGELOG.md
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          gh release create "${GITHUB_REF_NAME}"
-          dist/unibo-qr.html dist/unibo-qr.html.sha256
-          --title "${GITHUB_REF_NAME}" --generate-notes --verify-tag
+          NOTES_FILE: notes.md
+        run: node scripts/release-plan.mjs && cat notes.md
+      - uses: actions/attest-build-provenance@v2
+        if: needs.decide.outputs.release == 'true'
+        with:
+          subject-path: dist/unibo-qr.html
+      - name: Tag and publish
+        if: needs.decide.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.decide.outputs.tag }}
+          CREATE_TAG: ${{ needs.decide.outputs.create_tag }}
+        run: |
+          if [ "$CREATE_TAG" = "true" ]; then target=(--target "$GITHUB_SHA"); else target=(--verify-tag); fi
+          gh release create "$TAG" dist/unibo-qr.html dist/unibo-qr.html.sha256 \
+            --title "unibo-qr $TAG" --notes-file notes.md --latest "${target[@]}"
