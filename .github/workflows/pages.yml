@@ -1,9 +1,9 @@
 name: Deploy to GitHub Pages
 
-# Requires: Settings → Pages → Source = "GitHub Actions".
+# Opt-in only: the public site is NOT published automatically.
+# To publish: Settings → Pages → Source = "GitHub Actions", then run this
+# workflow by hand (Actions → Deploy to GitHub Pages → Run workflow).
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
