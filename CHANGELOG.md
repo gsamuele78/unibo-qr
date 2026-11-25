@@ -3,6 +3,26 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-11-25
+
+### Added
+- Compatibility banner in the app (IT/EN): supported browsers with minimum
+  versions and software requirements.
+- Unsupported-browser handling: feature detection plus an ES5 boot guard show a
+  bilingual warning instead of a broken form; `<noscript>` message.
+- E2E suite now runs on Chromium, Firefox and WebKit (Linux) and WebKit on
+  macOS; `node scripts/e2e.mjs <browser>`, `npm run test:e2e:all` (cross-platform
+  runner, works from Windows shells too).
+- E2E coverage for the file served over HTTP (GitHub Pages scenario).
+
+### Fixed
+- Served over HTTP, Firefox requested `/favicon.ico`, which the CSP blocked with
+  a console error. An embedded `data:` icon removes the request in every browser.
+
+### Changed
+- Dependabot no longer proposes TypeScript major upgrades (TypeScript 7 drops
+  the compiler API used by `npm run vendor`).
+
 ## [1.0.0] — 2026-11-20
 
 ### Added

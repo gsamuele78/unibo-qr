@@ -46,23 +46,31 @@ jobs:
         run: npm run test:coverage
 
   e2e:
-    name: E2E tests (Chromium)
-    runs-on: ubuntu-latest
+    # Job names are referenced by the branch ruleset's required checks: keep them stable.
+    name: E2E tests (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     needs: [static, unit]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: Chromium, browser: chromium, os: ubuntu-latest }
+          - { name: Firefox, browser: firefox, os: ubuntu-latest }
+          - { name: WebKit, browser: webkit, os: ubuntu-latest }
+          # Closest automated stand-in for desktop Safari.
+          - { name: WebKit on macOS, browser: webkit, os: macos-latest }
+    env:
+      BROWSER: ${{ matrix.browser }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version-file: .nvmrc, cache: npm }
       - run: npm ci
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run test:e2e
       - name: Upload single-file build
+        if: matrix.name == 'Chromium'
         uses: actions/upload-artifact@v4
         with:
           name: unibo-qr-html

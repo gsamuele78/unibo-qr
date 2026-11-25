@@ -5,6 +5,12 @@ updates:
     schedule: { interval: weekly }
     groups:
       dev-dependencies: { dependency-type: development }
+    ignore:
+      # scripts/vendor.mjs uses the TypeScript JS compiler API (ts.transpileModule),
+      # which the native TypeScript 7 package no longer ships. Only used to
+      # regenerate vendor/qrcodegen.js; revisit when upstream changes.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }

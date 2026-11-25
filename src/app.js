@@ -5,6 +5,9 @@
 (function () {
   "use strict";
   /* global qrcodegen, UniboQrCore, UniboQrI18n */
+  // Unsupported browser: stop here; boot-guard.js then reveals the static warning.
+  if (UniboQrCore.missingFeatures(window).length) return;
+
   const core = UniboQrCore.createCore(qrcodegen);
   const I = UniboQrI18n;
   const $ = (sel) => document.querySelector(sel);
@@ -47,6 +50,9 @@
         node.setAttribute(attr, t(key));
       });
     });
+    const browsers = core.browserSupportLabel();
+    $("#compat-summary").textContent = t("compatSummary", { browsers });
+    $("#req-browsers").textContent = t("reqBrowsers", { browsers });
     el.content.placeholder = t("contentPlaceholder");
     document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === state.locale)));
     document.title = `${t("appTitle")} · ${t("institution")}`;
@@ -272,5 +278,9 @@
 
   state.color = selectedColour();
   applyLocale();
+  $("main").hidden = false;
+  $("#compat").hidden = false;
+  $("footer").hidden = false;
   update();
+  window.__uniboQrReady = true; // read by boot-guard.js
 })();
