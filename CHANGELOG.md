@@ -14,6 +14,10 @@ and [Semantic Versioning](https://semver.org/).
   macOS; `BROWSER=<name> npm run test:e2e`, `npm run test:e2e:all`.
 - E2E coverage for the file served over HTTP (GitHub Pages scenario).
 
+### Fixed
+- Served over HTTP, Firefox requested `/favicon.ico`, which the CSP blocked with
+  a console error. An embedded `data:` icon removes the request in every browser.
+
 ### Changed
 - Dependabot no longer proposes TypeScript major upgrades (TypeScript 7 drops
   the compiler API used by `npm run vendor`).

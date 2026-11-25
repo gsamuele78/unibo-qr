@@ -134,11 +134,18 @@ const FORMATS = [
 for (const [sel, mime, ext] of FORMATS) {
   test(`downloads a scannable ${mime}`, async (t) => {
     const { context, page } = await openApp();
-    if (mime === "image/webp" && BROWSER === "webkit") {
-      // WebKit/Safari cannot encode WebP from a canvas: the button must be hidden, not broken.
+    // Optional formats: the button must be shown exactly when this engine can encode
+    // the format (e.g. WebP: no in Safari/WebKit on macOS, yes in WebKitGTK).
+    const canEncode = mime === "image/svg+xml" || await page.evaluate((m) => {
+      const c = document.createElement("canvas");
+      c.width = c.height = 1;
+      return c.toDataURL(m).startsWith(`data:${m}`);
+    }, mime);
+    if (!canEncode) {
+      assert.equal(mime, "image/webp", "only WebP may be unsupported");
       assert.equal(await page.isHidden(sel), true);
       await context.close();
-      return t.skip("WebP encoding is not available in WebKit");
+      return t.skip(`${mime} encoding is not available in this ${BROWSER} build`);
     }
     assert.equal(await page.isVisible(sel), true);
     const payload = "https://www.unibo.it/it/ateneo";
@@ -247,6 +254,8 @@ test("served over HTTP: loads cleanly and remembers the language", async () => {
   await page.reload();
   await page.waitForSelector("#preview[data-ready='true']");
   assert.equal(await page.getAttribute("html", "lang"), "en");
+  // An embedded icon stops browsers from requesting /favicon.ico from the host.
+  assert.match(await page.getAttribute('link[rel="icon"]', "href"), /^data:image\/svg\+xml,/);
   assert.deepEqual(external, []);
   assert.deepEqual(errors, []);
   await context.close();
