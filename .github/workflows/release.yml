@@ -73,7 +73,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           NOTES_FILE: notes.md
         run: node scripts/release-plan.mjs && cat notes.md
-      - uses: actions/attest-build-provenance@v2
+      - uses: actions/attest-build-provenance@v4
         if: needs.decide.outputs.release == 'true'
         with:
           subject-path: dist/unibo-qr.html
