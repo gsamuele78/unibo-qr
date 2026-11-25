@@ -69,3 +69,10 @@ test("plan: pull requests only rehearse, never publish", () => {
   assert.equal(p.release, false);
   assert.match(p.reason, /rehearsal/);
 });
+
+test("plan: never releases from a branch other than the default one", () => {
+  const p = mod.plan({ ...base, event: "workflow_dispatch", refName: "feature/x" });
+  assert.equal(p.release, false);
+  assert.match(p.reason, /only from main/);
+  assert.equal(mod.plan({ ...base, event: "workflow_dispatch" }).release, true);
+});

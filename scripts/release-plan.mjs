@@ -27,11 +27,15 @@ export function changelogSection(changelog, version) {
   return lines.slice(start + 1, end).join("\n").trim();
 }
 
-export function plan({ pkgVersion, changelog, tags, releases, event, refType, refName }) {
+export function plan({ pkgVersion, changelog, tags, releases, event, refType, refName, defaultBranch = "main" }) {
   const tag = `v${pkgVersion}`;
   const byHand = refType === "tag";
   if (event === "pull_request") {
     return { release: false, tag, createTag: false, reason: "pull request: rehearsal only, nothing is published" };
+  }
+  if (!byHand && refName !== defaultBranch) {
+    // e.g. a manual run started on a feature branch
+    return { release: false, tag, createTag: false, reason: `releases are cut only from ${defaultBranch}, not ${refName}` };
   }
   const newest = latestChangelogVersion(changelog);
   if (newest !== pkgVersion) {
