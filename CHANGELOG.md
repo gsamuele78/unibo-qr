@@ -11,7 +11,8 @@ and [Semantic Versioning](https://semver.org/).
 - Unsupported-browser handling: feature detection plus an ES5 boot guard show a
   bilingual warning instead of a broken form; `<noscript>` message.
 - E2E suite now runs on Chromium, Firefox and WebKit (Linux) and WebKit on
-  macOS; `BROWSER=<name> npm run test:e2e`, `npm run test:e2e:all`.
+  macOS; `node scripts/e2e.mjs <browser>`, `npm run test:e2e:all` (cross-platform
+  runner, works from Windows shells too).
 - E2E coverage for the file served over HTTP (GitHub Pages scenario).
 
 ### Fixed

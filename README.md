@@ -80,7 +80,7 @@ npm test
 | `npm run lint` | ESLint |
 | `npm run test:unit` | `node:test` unit tests (incl. jsQR round-trip decoding) |
 | `npm run test:coverage` | Unit tests with coverage gates (lines ≥ 95 %, branches ≥ 85 %) |
-| `npm run test:e2e` | Build, then Playwright E2E against the built file (Chromium; set `BROWSER=firefox` or `BROWSER=webkit`) |
+| `npm run test:e2e` | Build, then Playwright E2E against the built file (Chromium by default; one browser: `node scripts/e2e.mjs firefox`) |
 | `npm run test:e2e:all` | Same, on Chromium, Firefox and WebKit in sequence |
 | `npm run vendor` | Regenerate `vendor/qrcodegen.js` from the pinned TS source |
 
