@@ -28,7 +28,7 @@
 ## 🇮🇹 Italiano
 
 ### Uso
-1. Scarica `unibo-qr.html` dalla pagina [Releases](https://github.com/gsamuele78/unibo-qr/releases) (oppure usa la versione su GitHub Pages).
+1. Scarica `unibo-qr.html` dalla pagina [Releases](https://github.com/gsamuele78/unibo-qr/releases).
 2. Aprilo con un browser qualsiasi — anche senza connessione.
 3. Inserisci un indirizzo o un testo, scegli colore, correzione d'errore ed eventuale logo.
 4. Scarica in **PNG, JPEG, WebP** (256–4096 px), **SVG** o **PDF** vettoriali (20–200 mm).
@@ -55,7 +55,7 @@ gh attestation verify unibo-qr.html -R gsamuele78/unibo-qr
 ## 🇬🇧 English
 
 ### Usage
-1. Download `unibo-qr.html` from [Releases](https://github.com/gsamuele78/unibo-qr/releases) (or use the GitHub Pages build).
+1. Download `unibo-qr.html` from [Releases](https://github.com/gsamuele78/unibo-qr/releases).
 2. Open it in any browser — no connection required.
 3. Enter a URL or text; pick colour, error correction, optional logo.
 4. Export **PNG, JPEG, WebP** (256–4096 px), or vector **SVG** / **PDF** (20–200 mm).
@@ -102,7 +102,7 @@ docs/adr/          Architecture Decision Records
 ### CI/CD
 - **CI** (`ci.yml`): lint, vendored-code integrity, `npm audit`, unit tests on Node 22 & 24 with coverage gates, E2E on Chromium, Firefox, WebKit (Linux) and WebKit (macOS), build artefact upload.
 - **CodeQL** (`codeql.yml`): security analysis on push/PR and weekly.
-- **Pages** (`pages.yml`): on `main`, tests then deploys the built file as `index.html`.
+- **Pages** (`pages.yml`): optional and manual only (`workflow_dispatch`). No public site is published unless a maintainer enables Pages and runs it.
 - **Release** (`release.yml`): on `vX.Y.Z` tags, tests, builds, attaches `unibo-qr.html` + SHA-256 and a build-provenance attestation.
 - **Dependabot**: weekly npm and Actions updates.
 

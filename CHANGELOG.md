@@ -20,6 +20,7 @@ and [Semantic Versioning](https://semver.org/).
   a console error. An embedded `data:` icon removes the request in every browser.
 
 ### Changed
+- GitHub Pages deployment is now manual only; nothing is published on push.
 - Dependabot no longer proposes TypeScript major upgrades (TypeScript 7 drops
   the compiler API used by `npm run vendor`).
 
