@@ -12,3 +12,4 @@ Format: [Michael Nygard](https://cognitect.com/blog/2011/11/15/documenting-archi
 | [0006](0006-scannability-guards.md) | Scannability guards: quiet zone, colour, logo | Accepted |
 | [0007](0007-i18n.md) | Dictionary-based IT/EN i18n without a framework | Accepted |
 | [0008](0008-browser-support-policy.md) | Browser support policy and unsupported-browser handling | Accepted |
+| [0009](0009-automatic-releases.md) | Automatic releases from CHANGELOG.md | Accepted |

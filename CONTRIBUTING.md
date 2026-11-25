@@ -31,10 +31,9 @@ should only wire events to core functions.
 
 ## Releasing
 
-Bump `version` in `package.json`, update `CHANGELOG.md`, then:
+Releases are automatic (ADR 0009). In a pull request:
 
-```bash
-git tag v1.0.1 && git push origin v1.0.1
-```
+1. bump `version` in `package.json` (and `package-lock.json`);
+2. add a `## [X.Y.Z] — YYYY-MM-DD` section at the top of `CHANGELOG.md`.
 
-The `release` workflow tests, builds and publishes `unibo-qr.html` with its SHA-256 and a provenance attestation.
+When that pull request is merged, the `Release` workflow tests the commit, creates the tag `vX.Y.Z` and publishes `unibo-qr.html` with its SHA-256, a provenance attestation and the changelog section as notes. Nothing to run locally. Pushing a tag by hand still works.

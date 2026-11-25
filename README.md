@@ -103,7 +103,7 @@ docs/adr/          Architecture Decision Records
 - **CI** (`ci.yml`): lint, vendored-code integrity, `npm audit`, unit tests on Node 22 & 24 with coverage gates, E2E on Chromium, Firefox, WebKit (Linux) and WebKit (macOS), build artefact upload.
 - **CodeQL** (`codeql.yml`): security analysis on push/PR and weekly.
 - **Pages** (`pages.yml`): optional and manual only (`workflow_dispatch`). No public site is published unless a maintainer enables Pages and runs it.
-- **Release** (`release.yml`): on `vX.Y.Z` tags, tests, builds, attaches `unibo-qr.html` + SHA-256 and a build-provenance attestation.
+- **Release** (`release.yml`): automatic. When `main` gets a new version in `package.json` + `CHANGELOG.md`, it tests, builds, creates the tag `vX.Y.Z` and publishes `unibo-qr.html` + SHA-256 with a build-provenance attestation.
 - **Dependabot**: weekly npm and Actions updates.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and the [ADRs](docs/adr/README.md).
