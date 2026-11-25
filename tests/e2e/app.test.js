@@ -5,28 +5,44 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
 const fs = require("node:fs");
-const { chromium } = require("playwright");
+const http = require("node:http");
+const playwright = require("playwright");
+
+// Browser under test: BROWSER=chromium|firefox|webkit (default chromium).
+const BROWSER = process.env.BROWSER || "chromium";
+const browserType = playwright[BROWSER];
+if (!browserType) throw new Error(`Unknown BROWSER "${BROWSER}"`);
 
 const DIST = path.resolve(__dirname, "../../dist/unibo-qr.html");
 const URL_ = "file://" + DIST;
 const JSQR = require.resolve("jsqr/dist/jsQR.js");
 const AXE = require.resolve("axe-core/axe.min.js");
 
-let browser;
-test.before(async () => { browser = await chromium.launch(); });
-test.after(async () => { await browser?.close(); });
+let browser, server, httpUrl;
+test.before(async () => {
+  browser = await browserType.launch();
+  // The same file served over HTTP, as on GitHub Pages or a department web space.
+  server = http.createServer((req, res) => {
+    res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+    res.end(fs.readFileSync(DIST));
+  });
+  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  httpUrl = `http://127.0.0.1:${server.address().port}/`;
+});
+test.after(async () => { await browser?.close(); server?.close(); });
 
 // bypassCSP lets tests inject jsQR/axe; the CSP test itself runs with it off.
-async function openApp({ locale = "it-IT", bypassCSP = true } = {}) {
-  const context = await browser.newContext({ locale, acceptDownloads: true, bypassCSP });
+async function openApp({ locale = "it-IT", bypassCSP = true, url = URL_, init = null, wait = true, ...ctx } = {}) {
+  const context = await browser.newContext({ locale, acceptDownloads: true, bypassCSP, ...ctx });
   const page = await context.newPage();
   const external = [];
   const errors = [];
-  page.on("request", (r) => { if (!/^(file|data|blob):/.test(r.url())) external.push(r.url()); });
+  page.on("request", (r) => { if (!/^(file|data|blob):/.test(r.url()) && r.url() !== url) external.push(r.url()); });
   page.on("pageerror", (e) => errors.push(String(e)));
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
-  await page.goto(URL_);
-  await page.waitForSelector("#preview[data-ready='true']");
+  if (init) await page.addInitScript(init);
+  await page.goto(url);
+  if (wait) await page.waitForSelector("#preview[data-ready='true']");
   return { context, page, external, errors };
 }
 
@@ -116,8 +132,15 @@ const FORMATS = [
   ["#dl-svg", "image/svg+xml", /\.svg$/],
 ];
 for (const [sel, mime, ext] of FORMATS) {
-  test(`downloads a scannable ${mime}`, async () => {
+  test(`downloads a scannable ${mime}`, async (t) => {
     const { context, page } = await openApp();
+    if (mime === "image/webp" && BROWSER === "webkit") {
+      // WebKit/Safari cannot encode WebP from a canvas: the button must be hidden, not broken.
+      assert.equal(await page.isHidden(sel), true);
+      await context.close();
+      return t.skip("WebP encoding is not available in WebKit");
+    }
+    assert.equal(await page.isVisible(sel), true);
     const payload = "https://www.unibo.it/it/ateneo";
     await page.fill("#content", payload);
     await page.waitForTimeout(250);
@@ -215,5 +238,56 @@ test("works at phone width without horizontal scroll", async () => {
   await page.goto(URL_);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   assert.equal(overflow, false);
+  await context.close();
+});
+
+test("served over HTTP: loads cleanly and remembers the language", async () => {
+  const { context, page, external, errors } = await openApp({ url: httpUrl, bypassCSP: false, locale: "it-IT" });
+  await page.click("#lang-en");
+  await page.reload();
+  await page.waitForSelector("#preview[data-ready='true']");
+  assert.equal(await page.getAttribute("html", "lang"), "en");
+  assert.deepEqual(external, []);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("compatibility banner lists supported browsers and software requirements, in both languages", async () => {
+  const { context, page } = await openApp({ locale: "it-IT" });
+  const banner = page.locator("#compat");
+  assert.equal(await banner.isVisible(), true);
+  const it = await banner.innerText();
+  assert.match(it, /Chrome 90\+ · Edge 90\+ · Firefox 90\+ · Safari 15\+/);
+  assert.match(it, /Nessuna installazione/);
+  await page.click("#compat summary");
+  assert.match(await page.locator("#compat-details").innerText(), /Windows, macOS, Linux, Android/);
+  await page.click("#lang-en");
+  const en = await banner.innerText();
+  assert.match(en, /Firefox 90\+/);
+  assert.match(en, /No installation/);
+  assert.equal(await page.isHidden("#compat-warning"), true);
+  await context.close();
+});
+
+test("unsupported browser: shows a bilingual warning instead of a broken form", async () => {
+  const { context, page, errors } = await openApp({
+    wait: false,
+    init: () => { delete Element.prototype.replaceChildren; },
+  });
+  await page.waitForSelector("#compat-warning:not([hidden])");
+  const text = await page.locator("#compat-warning").innerText();
+  assert.match(text, /non è supportato/);
+  assert.match(text, /not supported/);
+  assert.match(text, /Firefox 90\+/);
+  assert.equal(await page.isHidden("main"), true);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("JavaScript disabled: explains the requirement and hides the form", async () => {
+  const { context, page } = await openApp({ wait: false, javaScriptEnabled: false });
+  const text = await page.locator("noscript").innerText();
+  assert.match(text, /JavaScript/);
+  assert.equal(await page.isHidden("main"), true);
   await context.close();
 });

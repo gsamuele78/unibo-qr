@@ -5,7 +5,7 @@
 ```bash
 nvm use            # Node 22 (see .nvmrc)
 npm ci
-npx playwright install chromium   # only if you have no local Chromium
+npx playwright install chromium firefox webkit
 ```
 
 ## Workflow (TDD)
@@ -23,6 +23,8 @@ should only wire events to core functions.
 - **No runtime network access, ever.** No CDNs, fonts, analytics. The E2E suite fails on any external request.
 - **No inline event handlers or `style=""` attributes** — the CSP is hash-based.
 - New UI strings go into **both** dictionaries in `src/i18n.js`; the parity test enforces it.
+- `src/boot-guard.js` must stay ES5 and must not depend on the app bundle.
+- If you use a newer web-platform feature, update `BROWSER_SUPPORT` in `src/qr-core.js` (single source for the banner, the warning and the README table).
 - Do not edit `vendor/qrcodegen.js`; update `vendor/qrcodegen.ts` from upstream and run `npm run vendor`.
 - Significant design changes need an ADR in `docs/adr/`.
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/).

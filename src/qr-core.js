@@ -23,6 +23,36 @@
   const LOGO_DATA_URL_RE = /^data:image\/(png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z0-9+/]+=*$/;
   const DANGEROUS_SCHEMES = new Set(["javascript:", "data:", "vbscript:", "file:"]);
 
+  /**
+   * Minimum browser versions, derived from the newest platform features the app
+   * relies on (CSS aspect-ratio, Element.replaceChildren, Blob.arrayBuffer).
+   * Single source of truth: the build injects it into the static warning too.
+   */
+  const BROWSER_SUPPORT = [
+    { name: "Chrome", min: "90" },
+    { name: "Edge", min: "90" },
+    { name: "Firefox", min: "90" },
+    { name: "Safari", min: "15" },
+  ];
+
+  function browserSupportLabel() {
+    return BROWSER_SUPPORT.map((b) => `${b.name} ${b.min}+`).join(" · ");
+  }
+
+  /** Names of required capabilities that `win` lacks (feature detection, no UA sniffing). */
+  function missingFeatures(win) {
+    const w = win || {};
+    const proto = (ctor) => (ctor && ctor.prototype) || {};
+    const checks = {
+      canvas: typeof proto(w.HTMLCanvasElement).toBlob === "function" && typeof proto(w.HTMLCanvasElement).getContext === "function",
+      blob: typeof proto(w.Blob).arrayBuffer === "function",
+      objectUrl: Boolean(w.URL) && typeof w.URL.createObjectURL === "function",
+      fileReader: typeof w.FileReader === "function",
+      dom: typeof proto(w.Element).replaceChildren === "function",
+    };
+    return Object.keys(checks).filter((k) => !checks[k]);
+  }
+
   class QrInputError extends Error {
     constructor(code, message) {
       super(message || code);
@@ -272,6 +302,7 @@
 
   const api = {
     QUIET_ZONE, LOGO_RATIO, ECC_ORDER, QrInputError,
+    BROWSER_SUPPORT, browserSupportLabel, missingFeatures,
     normalizeInput, classifyInput, hexToRgb, normalizeHex, contrastRatio, colourStatus,
     layout, logoBox, fitContain, escapeXml, darkRuns, buildSvg, buildPdf, slugForFilename,
   };

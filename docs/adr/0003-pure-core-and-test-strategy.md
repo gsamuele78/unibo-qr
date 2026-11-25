@@ -15,4 +15,4 @@ The original snippet mixed DOM, rendering and serialisation, making it untestabl
 - ✅ Tests exercise the shipped artefact, not a dev variant.
 - ✅ "It decodes" is asserted, not assumed.
 - ⚠️ jsQR is more forgiving than some phone scanners — keep the "test with two devices" advice before print runs.
-- ⚠️ E2E runs on Chromium only; Firefox/WebKit can be added to the matrix if needed.
+- E2E originally ran on Chromium only; extended to Firefox and WebKit by ADR 0008.

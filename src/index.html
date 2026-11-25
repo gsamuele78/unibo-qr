@@ -27,7 +27,30 @@
   </div>
 </header>
 
-<main class="wrap grid">
+<noscript>
+  <div class="wrap"><p class="banner banner-error">
+    <span lang="it">Questa applicazione richiede JavaScript: attivalo nel browser e ricarica la pagina.</span>
+    <span lang="en">This application requires JavaScript: enable it in your browser and reload the page.</span>
+  </p></div>
+</noscript>
+
+<div class="wrap">
+  <div id="compat-warning" class="banner banner-error" role="alert" hidden>
+    <p lang="it"><strong>Questo browser non è supportato.</strong> Usa una versione aggiornata di: @BROWSERS@.</p>
+    <p lang="en"><strong>This browser is not supported.</strong> Please use an up-to-date version of: @BROWSERS@.</p>
+  </div>
+  <details id="compat" class="banner banner-info" hidden>
+    <summary><span id="compat-summary"></span> <span class="more" data-i18n="compatDetailsLabel"></span></summary>
+    <ul id="compat-details">
+      <li id="req-browsers"></li>
+      <li data-i18n="reqSoftware"></li>
+      <li data-i18n="reqNotes"></li>
+      <li data-i18n="reqTested"></li>
+    </ul>
+  </details>
+</div>
+
+<main class="wrap grid" hidden>
   <form id="form" class="panel" novalidate>
     <div class="field">
       <label for="content" data-i18n="contentLabel"></label>
@@ -110,10 +133,11 @@
   </section>
 </main>
 
-<footer class="wrap footer">
+<footer class="wrap footer" hidden>
   <p data-i18n="footerOffline"></p>
   <p><span data-i18n="footerLicense"></span> · v@VERSION@</p>
 </footer>
 <script>/*@JS@*/</script>
+<script>/*@JS_GUARD@*/</script>
 </body>
 </html>

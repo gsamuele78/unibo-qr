@@ -2,6 +2,7 @@
 // Output: dist/unibo-qr.html (+ .sha256). Run: npm run build
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
 
 const root = new URL("../", import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), "utf8");
@@ -12,12 +13,17 @@ const css = read("src/styles.css");
 const js = ["vendor/qrcodegen.js", "src/qr-core.js", "src/i18n.js", "src/app.js"]
   .map((f) => `/* ---- ${f} ---- */\n${read(f)}`).join("\n");
 
+// ES5 guard that runs after the app: if the app did not start (old browser,
+// missing feature, runtime error) it reveals the static warning.
+const guard = read("src/boot-guard.js");
+const { browserSupportLabel } = createRequire(import.meta.url)("../src/qr-core.js");
+
 // The placeholders sit between the tags, so the hashed text equals the element content.
-if (js.includes("</script") || css.includes("</style")) throw new Error("Closing tag inside inline asset");
+if (js.includes("</script") || guard.includes("</script") || css.includes("</style")) throw new Error("Closing tag inside inline asset");
 
 const csp = [
   "default-src 'none'",
-  `script-src 'sha256-${sha256(js)}'`,
+  `script-src 'sha256-${sha256(js)}' 'sha256-${sha256(guard)}'`,
   `style-src 'sha256-${sha256(css)}'`,
   "img-src data: blob:",
   "base-uri 'none'",
@@ -25,12 +31,14 @@ const csp = [
 ].join("; ");
 
 let html = read("src/index.html");
-for (const ph of ["/*@CSS@*/", "/*@JS@*/", "@CSP@"]) {
+for (const ph of ["/*@CSS@*/", "/*@JS@*/", "/*@JS_GUARD@*/", "@CSP@"]) {
   if (html.split(ph).length !== 2) throw new Error(`Placeholder ${ph} must appear exactly once`);
 }
 html = html
   .replace("@CSP@", csp)
   .replaceAll("@VERSION@", version)
+  .replaceAll("@BROWSERS@", browserSupportLabel())
+  .replace("/*@JS_GUARD@*/", () => guard)
   .replace("/*@CSS@*/", () => css)
   .replace("/*@JS@*/", () => js);
 

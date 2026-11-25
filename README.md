@@ -9,6 +9,20 @@
 
 > Progetto indipendente, non un servizio ufficiale dell'Ateneo. / Independent project, not an official University service.
 
+## Compatibilità / Compatibility
+
+| Browser | Versione minima / Minimum | Verifica automatica / Automated check |
+|---|---|---|
+| Chrome | 90+ | Chromium, ad ogni commit / on every commit |
+| Edge | 90+ | Chromium (stesso motore / same engine) |
+| Firefox | 90+ | Firefox, ad ogni commit / on every commit |
+| Safari (macOS, iOS, iPadOS) | 15+ | WebKit su Linux e macOS / on Linux and macOS |
+
+- **Requisiti software / Software requirements:** solo un browser aggiornato su Windows, macOS, Linux, Android, iOS o iPadOS. Nessuna installazione, nessun server, nessuna connessione. / Just an up-to-date browser. No installation, no server, no connection.
+- **Limiti noti / Known limits:** Safari non esporta in WebP e il pulsante viene nascosto. «Copia immagine» compare solo dove il browser lo consente. / Safari cannot export WebP, so the button is hidden. "Copy image" only appears where the browser allows it.
+- Le versioni minime derivano dalle funzioni web usate (analisi delle funzionalità); i test automatici girano sulle versioni correnti dei tre motori, non sulle versioni minime. / Minimum versions come from the web features used; automated tests run on current engine builds, not on the minimum versions.
+- Un browser non supportato vede un avviso bilingue al posto del modulo. / An unsupported browser gets a bilingual warning instead of the form.
+
 ---
 
 ## 🇮🇹 Italiano
@@ -54,7 +68,7 @@ Requirements: Node ≥ 22.8.
 npm ci
 ```
 ```bash
-npx playwright install chromium
+npx playwright install chromium firefox webkit
 ```
 ```bash
 npm test
@@ -66,7 +80,8 @@ npm test
 | `npm run lint` | ESLint |
 | `npm run test:unit` | `node:test` unit tests (incl. jsQR round-trip decoding) |
 | `npm run test:coverage` | Unit tests with coverage gates (lines ≥ 95 %, branches ≥ 85 %) |
-| `npm run test:e2e` | Build, then Playwright E2E against the built file |
+| `npm run test:e2e` | Build, then Playwright E2E against the built file (Chromium; set `BROWSER=firefox` or `BROWSER=webkit`) |
+| `npm run test:e2e:all` | Same, on Chromium, Firefox and WebKit in sequence |
 | `npm run vendor` | Regenerate `vendor/qrcodegen.js` from the pinned TS source |
 
 ### Layout
@@ -74,6 +89,7 @@ npm test
 src/qr-core.js     pure logic: normalise, classify, encode, layout, SVG, PDF, colour
 src/i18n.js        IT/EN dictionaries + locale resolution
 src/app.js         DOM wiring only
+src/boot-guard.js  ES5 fallback: reveals the unsupported-browser warning
 src/index.html     template (CSP/CSS/JS placeholders)
 src/styles.css
 vendor/            Nayuki QR encoder (MIT), pinned TS + generated JS
@@ -84,7 +100,7 @@ docs/adr/          Architecture Decision Records
 ```
 
 ### CI/CD
-- **CI** (`ci.yml`): lint, vendored-code integrity, `npm audit`, unit tests on Node 22 & 24 with coverage gates, E2E on Chromium, build artefact upload.
+- **CI** (`ci.yml`): lint, vendored-code integrity, `npm audit`, unit tests on Node 22 & 24 with coverage gates, E2E on Chromium, Firefox, WebKit (Linux) and WebKit (macOS), build artefact upload.
 - **CodeQL** (`codeql.yml`): security analysis on push/PR and weekly.
 - **Pages** (`pages.yml`): on `main`, tests then deploys the built file as `index.html`.
 - **Release** (`release.yml`): on `vX.Y.Z` tags, tests, builds, attaches `unibo-qr.html` + SHA-256 and a build-provenance attestation.
